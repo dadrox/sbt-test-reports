@@ -19,7 +19,6 @@ Should work with the following scala versions:
  
 Should work with the following SBT versions:
 
- * 0.11.x
  * 0.12.x
 
 ## Known Issues
