@@ -53,12 +53,6 @@ object Id {
     val current = new AtomicInteger(1)
 }
 
-class ThreadLocal[T](init: => T) extends java.lang.ThreadLocal[T] with Function0[T] {
-    override def initialValue: T = init
-    def apply = get
-    def withValue[S](thunk: (T => S)): S = thunk(get)
-}
-
 case class Suite(name: String, hostname: String) {
     val start = System.currentTimeMillis()
     val events = new ListBuffer[Event]
