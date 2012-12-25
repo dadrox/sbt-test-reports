@@ -6,7 +6,7 @@ This was only tested with an sbt junit framework, but should work with any sbt t
 
 ## Usage
 
-Add `addSbtPlugin("com.dadrox" %% "sbt-test-reports" % "0.1")` to `project/plugins.sbt`.
+Add `addSbtPlugin("com.dadrox" % "sbt-test-reports" % "0.1")` to `project/plugins.sbt`.
 
 Add `testListeners <+= target map (t => new com.dadrox.sbt.test.reports.Xml(t getName))` to your full SBT configuration.
 
