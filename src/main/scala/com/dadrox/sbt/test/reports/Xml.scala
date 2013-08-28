@@ -7,9 +7,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable.ListBuffer
 import scala.runtime.RichException
 import scala.xml.{ Text, Unparsed }
-import org.scalatools.testing.{ Event, Result }
 import sbt._
 import scala.xml.NodeSeq
+import sbt.testing.Event
+import sbt.testing.Status
 
 class Xml(
     target: String)
@@ -72,25 +73,38 @@ case class Suite(name: String, hostname: String) {
     }
 
     def testcase(event: Event) = {
-        val stacktrace = Option(event.error()) map { e =>
-            cdata("stacktrace:\n" + e.getMessage() + "\n" + new RichException(e).getStackTraceString)
+        val stacktrace = {
+            val t = event.throwable()
+            if(t.isDefined()) {
+                val e = t.get()
+                Some(cdata("stacktrace:\n" + e.getMessage() + "\n" + e.getStackTraceString))
+            }
+            else None
         }
         val escapedExceptionMessage = {
-            val maybe = Option(event.error()) map (e => escape(e.getMessage()))
-            maybe.getOrElse("")
+            val t = event.throwable()
+            if(t.isDefined()) {
+                val e = t.get()
+                escape(e.getMessage())
+            }
+            else ""
         }
-        val description = Option(event.description())
+        val description = Option(event.fullyQualifiedName())
         val cdataDescription = cdata(description.getOrElse(""))
 
-        <testcase package={ name } name={ event.testName().replaceAll(name + ".", "") }>
+        <testcase package={ name } name={ event.fullyQualifiedName().replaceAll(name + ".", "") }>
             {
-                (event.result(), stacktrace) match {
-                    case (Result.Success, _)        => { cdataDescription }
-                    case (Result.Skipped, _)        => <skipped>{ cdataDescription }</skipped>
-                    case (Result.Error, Some(stacktrace))=> <error type="error" message={ escapedExceptionMessage }>{ stacktrace }</error>
-                    case (Result.Error, _)          => <error type="error" message={ escapedExceptionMessage }/>
-                    case (Result.Failure, Some(stacktrace))=> <failure type="failure" message={ escapedExceptionMessage }>{ stacktrace }</failure>
-                    case (Result.Failure, _)        => <failure type="failure" message={ escapedExceptionMessage }/>
+                (event.status(), stacktrace) match {
+                    case (Status.Success, _)        => { cdataDescription }
+                    case (Status.Skipped, _)        => <skipped>{ cdataDescription }</skipped>
+                    case (Status.Ignored, _)        => <skipped>{ cdataDescription }</skipped>
+                    case (Status.Error, Some(stacktrace))=> <error type="error" message={ escapedExceptionMessage }>{ stacktrace }</error>
+                    case (Status.Error, _)          => <error type="error" message={ escapedExceptionMessage }/>
+                    case (Status.Failure, Some(stacktrace))=> <failure type="failure" message={ escapedExceptionMessage }>{ stacktrace }</failure>
+                    case (Status.Failure, _)        => <failure type="failure" message={ escapedExceptionMessage }/>
+                    case (Status.Canceled, _)        => <failure type="canceled" message={ escapedExceptionMessage }/>
+                    // TODO I'm not sure what pending is...
+                    case (Status.Pending, _)        => { cdataDescription }
                 }
             }
         </testcase>
@@ -100,16 +114,16 @@ case class Suite(name: String, hostname: String) {
         val id = Some(Text(Id.current.getAndIncrement().toString))
         val duration = Some(Text(((System.currentTimeMillis() - start) / 1000.0).toString))
         val tests = Some(Text(events.size.toString))
-        val successes = events.filter(_.result() == Result.Success)
+        val successes = events.filter(_.status() == Status.Success)
 
         def count2Xml(count: Int) = count match {
             case 0    => None
             case some => Some(Text(some.toString))
         }
 
-        val skipped = count2Xml(events.filter(_.result() == Result.Skipped).size)
-        val errors = count2Xml(events.filter(_.result() == Result.Error).size)
-        val failures = count2Xml(events.filter(_.result() == Result.Failure).size)
+        val skipped = count2Xml(events.filter(_.status() == Status.Skipped).size)
+        val errors = count2Xml(events.filter(_.status() == Status.Error).size)
+        val failures = count2Xml(events.filter(_.status() == Status.Failure).size)
 
         val systemProperties = new scala.sys.SystemProperties().iterator.flatMap {
             case (k, v) if (k.startsWith("java")) => None

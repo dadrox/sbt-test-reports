@@ -6,8 +6,12 @@ version := "0.1"
 
 sbtPlugin := true
 
-crossScalaVersions := Seq("2.9.1", "2.9.3-RC1", "2.10.0-RC5", "2.9.2")
+//crossBuildingSettings
 
-CrossBuilding.crossSbtVersions := Seq("0.12")
+sbtVersion := "0.13.0"
 
-scalaVersion := "2.9.2"
+//crossScalaVersions := Seq("2.9.1", "2.9.2", "2.9.3", "2.10.2")
+
+//CrossBuilding.crossSbtVersions := Seq("0.13")
+
+scalaVersion := "2.10.2"
