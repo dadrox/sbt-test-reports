@@ -20,6 +20,7 @@ Should work with the following scala versions:
 Should work with the following SBT versions:
 
  * 0.12.x
+ * 0.13.x
 
 ## Known Issues
 
