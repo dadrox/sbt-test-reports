@@ -14,4 +14,4 @@ sbtVersion := "0.13.0"
 
 //CrossBuilding.crossSbtVersions := Seq("0.13")
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
