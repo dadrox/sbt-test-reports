@@ -1,5 +1,7 @@
 # SBT Test Reports
 
+[![Build Status](https://travis-ci.org/dadrox/sbt-test-reports.png)](https://travis-ci.org/dadrox/sbt-test-reports)
+
 This is an SBT plugin that produces reports for tests.
 
 This was only tested with an sbt junit framework, but should work with any sbt test framework.
